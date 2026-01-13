@@ -1,4 +1,5 @@
 import swaggerJSDoc from "swagger-jsdoc";
+import path from "path";
 
 const swaggerDefinition = {
   openapi: "3.0.0",
@@ -13,6 +14,10 @@ const swaggerDefinition = {
     },
   },
   servers: [
+    {
+      url: "https://api-dummy-oauth.vercel.app/api",
+      description: "Production Server",
+    },
     {
       url: "http://localhost:3000/api",
       description: "Development Server",
@@ -113,7 +118,7 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: ["./src/routes/*.ts"], // Path ke file routes yang berisi JSDoc
+  apis: [path.join(__dirname, "../routes/*.ts")], // Path ke file routes yang berisi JSDoc
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
