@@ -1,5 +1,4 @@
 import swaggerJSDoc from "swagger-jsdoc";
-import path from "path";
 
 const swaggerDefinition = {
   openapi: "3.0.0",
@@ -33,6 +32,279 @@ const swaggerDefinition = {
       description: "Endpoint untuk manajemen user",
     },
   ],
+  paths: {
+    "/oauth/login": {
+      post: {
+        summary: "Login ke sistem kampus",
+        description:
+          "Endpoint untuk autentikasi user kampus berdasarkan email. Akan mengembalikan data user dan token jika berhasil.",
+        tags: ["Authentication"],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    format: "email",
+                    description: "Email user yang terdaftar di sistem kampus",
+                    example: "mahasiswa@campus.ac.id",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Login berhasil",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Login berhasil",
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        user: {
+                          $ref: "#/components/schemas/User",
+                        },
+                        token: {
+                          type: "string",
+                          example: "campus_token_1_1234567890",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Email tidak diisi",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Email wajib diisi",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "User tidak terdaftar",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Internal Server Error",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/oauth/register": {
+      post: {
+        summary: "Registrasi user baru",
+        description:
+          "Endpoint untuk mendaftarkan user baru ke sistem kampus. Email harus unik dan belum terdaftar sebelumnya.",
+        tags: ["Authentication"],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    format: "email",
+                    description: "Email user yang akan didaftarkan",
+                    example: "newuser@campus.ac.id",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Registrasi berhasil",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User berhasil disimpan",
+                    },
+                    data: {
+                      $ref: "#/components/schemas/User",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Email tidak diisi",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+          401: {
+            description: "Email sudah terdaftar",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: false,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Email sudah terdaftar",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/users": {
+      get: {
+        summary: "Dapatkan semua user",
+        description:
+          "Endpoint untuk mengambil daftar semua user yang terdaftar di sistem kampus",
+        tags: ["Users"],
+        responses: {
+          200: {
+            description: "Berhasil mengambil data user",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    data: {
+                      type: "array",
+                      items: {
+                        $ref: "#/components/schemas/User",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Gagal mengambil data",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: false,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User gagal didapatkan",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Internal server error",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   components: {
     schemas: {
       User: {
@@ -118,7 +390,7 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: [path.join(__dirname, "../routes/*.ts")], // Path ke file routes yang berisi JSDoc
+  apis: [], // Tidak perlu scan file karena sudah didefinisikan manual di paths
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
