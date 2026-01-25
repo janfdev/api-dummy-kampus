@@ -1,4 +1,7 @@
 import { Router, Request, Response } from "express";
+import { eq } from "drizzle-orm";
+import { db } from "../db";
+import { usersTable } from "../db/schema";
 import {
   getAllUser,
   loginCampus,
@@ -9,24 +12,19 @@ const router = Router();
 /**
  * @swagger
  * /oauth/login:
- *   post:
+ *   get:
  *     summary: Login ke sistem kampus
  *     description: Endpoint untuk autentikasi user kampus berdasarkan email. Akan mengembalikan data user dan token jika berhasil.
  *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email user yang terdaftar di sistem kampus
- *                 example: mahasiswa@campus.ac.id
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: Email user yang terdaftar di sistem kampus
+ *         example: mahasiswa@campus.ac.id
  *     responses:
  *       200:
  *         description: Login berhasil
@@ -101,24 +99,19 @@ router.post("/oauth/login", async (req: Request, res: Response) => {
 /**
  * @swagger
  * /oauth/register:
- *   post:
+ *   get:
  *     summary: Registrasi user baru
  *     description: Endpoint untuk mendaftarkan user baru ke sistem kampus. Email harus unik dan belum terdaftar sebelumnya.
  *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email user yang akan didaftarkan
- *                 example: newuser@campus.ac.id
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: Email user yang akan didaftarkan
+ *         example: newuser@campus.ac.id
  *     responses:
  *       200:
  *         description: Registrasi berhasil
@@ -174,6 +167,7 @@ router.post("/oauth/register", async (req: Request, res: Response) => {
         message: "Email wajib diisi",
         data: null,
       });
+      return;
     }
 
     const result = await registerUser(email);
@@ -255,11 +249,99 @@ router.get("/users", async (req: Request, res: Response) => {
         message: result.message,
         data: null,
       });
+      return;
     }
 
     res.status(200).json({ data: result.data });
   } catch (err) {
     res.status(500).json({
+      message: "Internal server error",
+      data: null,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /users/{email}:
+ *   get:
+ *     summary: Dapatkan user berdasarkan email
+ *     description: Endpoint untuk mengambil data user berdasarkan email. Berguna untuk validasi user dari sistem eksternal.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: Email user yang ingin dicari
+ *         example: mahasiswa@campus.ac.id
+ *     responses:
+ *       200:
+ *         description: User ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User ditemukan
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User tidak ditemukan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: User tidak ditemukan
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get("/users/:email", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+    const emailStr = email as string;
+
+    const user = await db.query.usersTable.findFirst({
+      where: eq(usersTable.email, emailStr),
+    });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "User tidak ditemukan",
+        data: null,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User ditemukan",
+      data: user,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
       message: "Internal server error",
       data: null,
     });

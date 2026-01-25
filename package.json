@@ -3,7 +3,9 @@
     "dev": "bun --watch src/server.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "seed": "bun src/seed.ts"
+    "seed": "bun src/seed.ts",
+    "build": "bun build src/server.ts --compile --outfile dist/server",
+    "start": "bun dist/server"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

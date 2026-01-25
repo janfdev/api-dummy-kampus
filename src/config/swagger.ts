@@ -42,6 +42,20 @@ const swaggerDefinition = {
         requestBody: {
           required: true,
           content: {
+            "application/x-www-form-urlencoded": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    format: "email",
+                    description: "Email user yang terdaftar di sistem kampus",
+                    example: "mahasiswa@campus.ac.id",
+                  },
+                },
+              },
+            },
             "application/json": {
               schema: {
                 type: "object",
@@ -145,6 +159,20 @@ const swaggerDefinition = {
         requestBody: {
           required: true,
           content: {
+            "application/x-www-form-urlencoded": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    format: "email",
+                    description: "Email user yang akan didaftarkan",
+                    example: "newuser@campus.ac.id",
+                  },
+                },
+              },
+            },
             "application/json": {
               schema: {
                 type: "object",
@@ -304,6 +332,86 @@ const swaggerDefinition = {
         },
       },
     },
+    "/users/{email}": {
+      get: {
+        summary: "Dapatkan user berdasarkan email",
+        description:
+          "Endpoint untuk mengambil data user berdasarkan email. Berguna untuk validasi user dari sistem eksternal.",
+        tags: ["Users"],
+        parameters: [
+          {
+            in: "path",
+            name: "email",
+            required: true,
+            schema: {
+              type: "string",
+              format: "email",
+            },
+            description: "Email user yang ingin dicari",
+            example: "mahasiswa@campus.ac.id",
+          },
+        ],
+        responses: {
+          200: {
+            description: "User ditemukan",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User ditemukan",
+                    },
+                    data: {
+                      $ref: "#/components/schemas/User",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "User tidak ditemukan",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: false,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User tidak ditemukan",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -331,6 +439,18 @@ const swaggerDefinition = {
             enum: ["mahasiswa", "dosen", "staff"],
             description: "Role user di sistem kampus",
             example: "mahasiswa",
+          },
+          faculty: {
+            type: "string",
+            description: "Fakultas user",
+            example: "Teknik Informatika",
+            nullable: true,
+          },
+          prodi: {
+            type: "string",
+            description: "Program studi user",
+            example: "Teknik Informatika",
+            nullable: true,
           },
           nim: {
             type: "string",

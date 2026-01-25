@@ -10,6 +10,8 @@ async function seed() {
       email: "fauzanrizqinoor@gmail.com",
       full_name: "Rizqi Noor Fauzan",
       role: "mahasiswa" as const,
+      faculty: "Teknik",
+      prodi: "Teknik Informatika",
       nim: "12345678",
       status: "active",
     },
@@ -17,6 +19,8 @@ async function seed() {
       email: "rizqinoorf@gmail.com",
       full_name: "Fauzan AJA",
       role: "dosen" as const,
+      faculty: "Teknik",
+      prodi: "Teknik Informatika",
       nidn: "98765432",
       status: "active",
     },
@@ -32,6 +36,15 @@ async function seed() {
       role: "mahasiswa" as const,
       nim: "87654321",
       status: "inactive",
+    },
+    {
+      email: "zanntehsaha@gmail.com",
+      full_name: "Rizqi Noor Fauzan",
+      role: "mahasiswa" as const,
+      faculty: "FKIP",
+      prodi: "Pendidikan Matematika",
+      nim: "12345678",
+      status: "active",
     },
   ];
 

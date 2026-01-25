@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, "../public")));
@@ -14,7 +15,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 // Serve Swagger UI static files from node_modules
 app.use(
   "/swagger-ui",
-  express.static(path.join(__dirname, "../node_modules/swagger-ui-dist"))
+  express.static(path.join(__dirname, "../node_modules/swagger-ui-dist")),
 );
 
 // Serve Swagger JSON
