@@ -1,5 +1,5 @@
 {
-  "id": "0fcd0fe6-50c9-478c-8c3f-f7cc79d2132b",
+  "id": "2d51fa2a-eaa9-4c85-96a5-0f322d37e16a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -100,6 +100,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'mahasiswa'"
+        },
+        "fakultas": {
+          "name": "fakultas",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prodi": {
+          "name": "prodi",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "nim": {
           "name": "nim",
