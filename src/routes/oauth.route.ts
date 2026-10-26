@@ -6,6 +6,8 @@ import {
   getAllUser,
   loginCampus,
   registerUser,
+  upsertUser,
+  deleteUserByEmail,
 } from "../service/oauth.service";
 const router = Router();
 
@@ -159,7 +161,7 @@ router.post("/oauth/login", async (req: Request, res: Response) => {
  */
 router.post("/oauth/register", async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
+    const { email, full_name, fullName, role, faculty, prodi, nim, nidn, status } = req.body;
 
     if (!email) {
       res.status(400).json({
@@ -170,15 +172,24 @@ router.post("/oauth/register", async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await registerUser(email);
+    const result = await upsertUser({
+      email,
+      full_name: full_name || fullName,
+      role,
+      faculty,
+      prodi,
+      nim,
+      nidn,
+      status,
+    });
 
     if (!result.success) {
-      return res.status(401).json(result);
+      return res.status(400).json(result);
     }
 
     return res.status(200).json({
       success: true,
-      message: "User berhasil disimpan",
+      message: result.message,
       data: result.data,
     });
   } catch (err) {
@@ -339,6 +350,104 @@ router.get("/users/:email", async (req: Request, res: Response) => {
       message: "User ditemukan",
       data: user,
     });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+    });
+  }
+});
+
+// Create or update user (Upsert)
+router.post("/users", async (req: Request, res: Response) => {
+  try {
+    const { email, full_name, fullName, role, faculty, prodi, nim, nidn, status } = req.body;
+
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        message: "Email wajib diisi",
+        data: null,
+      });
+      return;
+    }
+
+    const result = await upsertUser({
+      email,
+      full_name: full_name || fullName,
+      role,
+      faculty,
+      prodi,
+      nim,
+      nidn,
+      status,
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result.data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+    });
+  }
+});
+
+// Update user by email
+router.put("/users/:email", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+    const { full_name, fullName, role, faculty, prodi, nim, nidn, status } = req.body;
+
+    const result = await upsertUser({
+      email: email as string,
+      full_name: full_name || fullName,
+      role,
+      faculty,
+      prodi,
+      nim,
+      nidn,
+      status,
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result.data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+    });
+  }
+});
+
+// Delete user by email
+router.delete("/users/:email", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+    const result = await deleteUserByEmail(email as string);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    return res.status(200).json(result);
   } catch (err) {
     res.status(500).json({
       success: false,

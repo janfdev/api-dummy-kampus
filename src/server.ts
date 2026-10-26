@@ -2,12 +2,31 @@ import express from "express";
 import path from "path";
 import { oauthRoutes } from "./routes/oauth.route";
 import { swaggerSpec } from "./config/swagger";
+import { getManageHtml } from "./views/manage";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enable CORS for all cross-origin requests
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Interactive SSO Directory Manager Web UI
+app.get("/manage", (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(getManageHtml());
+});
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, "../public")));
@@ -67,9 +86,9 @@ app.get("/docs", (req, res) => {
   res.send(html);
 });
 
-// Redirect / to /docs for backward compatibility
+// Redirect / to /manage directory dashboard
 app.get("/", (req, res) => {
-  res.redirect("/docs");
+  res.redirect("/manage");
 });
 
 // Routes

@@ -1,6 +1,17 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { usersTable } from "../db/schema";
+import { tokenTable, usersTable } from "../db/schema";
+
+export interface UserPayload {
+  email: string;
+  full_name?: string;
+  role?: "mahasiswa" | "dosen" | "staff";
+  faculty?: string | null;
+  prodi?: string | null;
+  nim?: string | null;
+  nidn?: string | null;
+  status?: string;
+}
 
 export const loginCampus = async (email: string) => {
   try {
@@ -45,43 +56,92 @@ export const loginCampus = async (email: string) => {
   }
 };
 
-export const registerUser = async (email: string) => {
+export const upsertUser = async (payload: UserPayload) => {
   try {
     const existingUser = await db.query.usersTable.findFirst({
-      where: eq(usersTable.email, email),
+      where: eq(usersTable.email, payload.email),
     });
 
+    const values = {
+      email: payload.email,
+      full_name: payload.full_name ?? (existingUser ? existingUser.full_name : ""),
+      role: (payload.role ?? (existingUser ? existingUser.role : "mahasiswa")) as "mahasiswa" | "dosen" | "staff",
+      faculty: payload.faculty !== undefined ? payload.faculty : (existingUser ? existingUser.faculty : null),
+      prodi: payload.prodi !== undefined ? payload.prodi : (existingUser ? existingUser.prodi : null),
+      nim: payload.nim !== undefined ? payload.nim : (existingUser ? existingUser.nim : null),
+      nidn: payload.nidn !== undefined ? payload.nidn : (existingUser ? existingUser.nidn : null),
+      status: payload.status ?? (existingUser ? existingUser.status : "active"),
+    };
+
     if (existingUser) {
+      const [updated] = await db
+        .update(usersTable)
+        .set(values)
+        .where(eq(usersTable.id, existingUser.id))
+        .returning();
+
       return {
-        success: false,
-        message: "Email sudah terdaftar",
-        data: null,
+        success: true,
+        message: "User berhasil diperbarui",
+        data: updated,
       };
     }
 
-    const [user] = await db
+    const [created] = await db
       .insert(usersTable)
-      .values({
-        email: email as string,
-        full_name: "",
-        role: "mahasiswa",
-        faculty: "",
-        prodi: "",
-        nim: "",
-        nidn: "",
-        status: "active",
-      })
+      .values(values)
       .returning();
 
     return {
       success: true,
       message: "User berhasil disimpan",
-      data: user,
+      data: created,
     };
-  } catch (err) {
+  } catch (err: any) {
+    console.error("Upsert User Error:", err);
     return {
       success: false,
-      message: "User gagal disimpan",
+      message: err.message || "User gagal disimpan",
+      data: null,
+    };
+  }
+};
+
+export const registerUser = async (payloadOrEmail: string | UserPayload) => {
+  if (typeof payloadOrEmail === "string") {
+    return upsertUser({ email: payloadOrEmail });
+  }
+  return upsertUser(payloadOrEmail);
+};
+
+export const deleteUserByEmail = async (email: string) => {
+  try {
+    const user = await db.query.usersTable.findFirst({
+      where: eq(usersTable.email, email),
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User tidak ditemukan",
+        data: null,
+      };
+    }
+
+    // Bersihkan token jika ada
+    await db.delete(tokenTable).where(eq(tokenTable.user_id, user.id));
+    await db.delete(usersTable).where(eq(usersTable.id, user.id));
+
+    return {
+      success: true,
+      message: "User berhasil dihapus",
+      data: null,
+    };
+  } catch (err: any) {
+    console.error("Delete User Error:", err);
+    return {
+      success: false,
+      message: err.message || "User gagal dihapus",
       data: null,
     };
   }
