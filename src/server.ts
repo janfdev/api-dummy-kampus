@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Interactive SSO Directory Manager Web UI
-app.get("/manage", (req, res) => {
+app.get(["/manage", "/api/manage"], (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(getManageHtml());
 });
@@ -94,7 +94,12 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api", oauthRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`API Documentation available at http://localhost:${PORT}/docs`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`API Documentation available at http://localhost:${PORT}/docs`);
+    console.log(`SSO Directory Manager available at http://localhost:${PORT}/manage`);
+  });
+}
+
+export default app;
