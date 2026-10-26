@@ -331,6 +331,105 @@ const swaggerDefinition = {
           },
         },
       },
+      post: {
+        summary: "Buat atau perbarui user (Upsert)",
+        description:
+          "Endpoint untuk menambahkan user baru atau memperbarui data user jika email sudah ada di sistem kampus.",
+        tags: ["Users"],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    format: "email",
+                    example: "dosen.andi@campus.ac.id",
+                  },
+                  full_name: {
+                    type: "string",
+                    example: "Dr. Andi Wijaya, M.Kom",
+                  },
+                  role: {
+                    type: "string",
+                    enum: ["mahasiswa", "dosen", "staff"],
+                    example: "dosen",
+                  },
+                  faculty: {
+                    type: "string",
+                    example: "Teknik",
+                  },
+                  prodi: {
+                    type: "string",
+                    example: "Teknik Informatika",
+                  },
+                  nim: {
+                    type: "string",
+                    example: "2021001",
+                  },
+                  nidn: {
+                    type: "string",
+                    example: "0412345678",
+                  },
+                  status: {
+                    type: "string",
+                    enum: ["active", "inactive"],
+                    example: "active",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "User berhasil disimpan",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User berhasil disimpan",
+                    },
+                    data: {
+                      $ref: "#/components/schemas/User",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Bad Request",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
     },
     "/users/{email}": {
       get: {
@@ -395,6 +494,70 @@ const swaggerDefinition = {
                       example: null,
                     },
                   },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: "Hapus user berdasarkan email",
+        description: "Menghapus akun user dari sistem kampus",
+        tags: ["Users"],
+        parameters: [
+          {
+            in: "path",
+            name: "email",
+            required: true,
+            schema: {
+              type: "string",
+              format: "email",
+            },
+            description: "Email user yang akan dihapus",
+            example: "mahasiswa@campus.ac.id",
+          },
+        ],
+        responses: {
+          200: {
+            description: "User berhasil dihapus",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "User berhasil dihapus",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "User tidak ditemukan",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
                 },
               },
             },
